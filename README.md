@@ -54,7 +54,7 @@ It works by running a small local proxy on your PC. Your console is pointed at t
 
 ## Common warnings, errors, and fixes
 
-### The screenshot warning about `HTTPS traffic to auth3.prod.demonware.net`
+### The warning about `HTTPS traffic to auth3.prod.demonware.net`
 
 This is expected and not a problem.
 
