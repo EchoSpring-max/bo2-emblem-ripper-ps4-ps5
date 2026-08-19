@@ -112,4 +112,4 @@ As with any unsigned Windows utility, SmartScreen may warn that the publisher is
 
 - Keep the app folder somewhere easy to find.
 - Back up the `saved/` folder if you want to keep your captured emblems.
-- Switch the PS5 proxy setting back to `Do Not Use` when you are done.
+- Switch the PS5 proxy setting back to `Do Not Use` or close the app when you are done.
