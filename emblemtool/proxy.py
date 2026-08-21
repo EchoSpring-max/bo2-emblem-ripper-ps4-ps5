@@ -164,7 +164,7 @@ def fetch_real(req, host, port):
     upstream.sendall(req)
     headers, body = recv_full_response(upstream)
     upstream.close()
-    return headers, body
+    return _normalize_response(headers, body)
 
 
 def forward_raw(req, host, port):
@@ -173,6 +173,23 @@ def forward_raw(req, host, port):
     headers, body = recv_full_response(upstream)
     upstream.close()
     return headers + body
+
+
+def stream_response(req, host, port, client):
+    upstream = socket.create_connection((host, port))
+    try:
+        upstream.sendall(req)
+        while True:
+            data = upstream.recv(65536)
+            if not data:
+                break
+            client.sendall(data)
+    finally:
+        try:
+            upstream.shutdown(socket.SHUT_RDWR)
+        except OSError:
+            pass
+        upstream.close()
 
 
 def _req_header(req, name):
@@ -221,6 +238,28 @@ def _http_blob_from_body(body, status=b"HTTP/1.1 200 OK\r\n"):
     return status + b"Content-Length: " + str(len(body)).encode() + b"\r\n\r\n" + body
 
 
+def _normalize_response(headers, body):
+    lines = headers.split(b"\r\n")
+    if not lines:
+        return headers, body
+    status_line = lines[0]
+    kept = []
+    for line in lines[1:]:
+        if not line:
+            continue
+        lower = line.lower()
+        if lower.startswith(b"content-length:"):
+            continue
+        if lower.startswith(b"transfer-encoding:"):
+            continue
+        kept.append(line)
+    normalized = status_line + b"\r\n"
+    for line in kept:
+        normalized += line + b"\r\n"
+    normalized += b"Content-Length: " + str(len(body)).encode() + b"\r\n\r\n"
+    return normalized, body
+
+
 def _record_profile_slot(userhash, slot_num, body):
     if userhash is None or slot_num is None:
         return
@@ -236,8 +275,7 @@ def handle_target_request(client, req, host, port, path, method):
     userhash = m.group(1) if m else None
 
     if method != "GET":
-        raw = forward_raw(req, host, port)
-        client.sendall(raw)
+        stream_response(req, host, port, client)
         if method in {"PUT", "POST"} and slot_num is not None:
             body = req.split(b"\r\n\r\n", 1)[1] if b"\r\n\r\n" in req else b""
             if body:
@@ -319,7 +357,7 @@ def handle(client):
             else:
                 if "demonware" in host.lower():
                     log(f"  note: HTTP request to {host}{path} (not the expected emblem host '{config.TARGET_HOST_SUBSTR}') - passed through untouched")
-                client.sendall(forward_raw(req_rewritten, host, port))
+                stream_response(req_rewritten, host, port, client)
     except Exception as e:
         log(f"  error: {e}")
     finally:
