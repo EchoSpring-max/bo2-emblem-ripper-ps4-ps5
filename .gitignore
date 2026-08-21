@@ -1,2 +1,20 @@
+# Runtime state and captured data - personal to whoever runs the tool,
+# should never be committed.
 saved/
 state.txt
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# PyInstaller build output (built via build_exe.bat, see docs/INSTALL.md)
+build/
+dist/
+
+# Editor/OS cruft
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
