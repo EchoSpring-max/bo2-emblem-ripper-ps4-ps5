@@ -1,115 +1,83 @@
 # BO2 Emblem Ripper PS4/PS5
 
-`BO2EmblemToolkit.exe` is a Windows tool for capturing a Black Ops II emblem from another player's profile and loading that captured emblem into your own emblem editor session on PS5.
+A Windows proxy tool for capturing Black Ops II emblems visible on PS5 and loading a selected capture into your own BO2 emblem editor session.
 
-It works by running a small local proxy on your PC. Your console is pointed at that proxy through the normal PS5 network settings menu. The tool only cares about the old BO2 emblem-storage HTTP requests. Regular HTTPS traffic, including PSN sign-in, stays tunneled through untouched and is not decrypted by this app.
+## Downloads
+
+For normal use, download `BO2EmblemToolkit.exe` from this repository's **Releases** page. It is a precompiled Windows build; Python is not required.
+
+The full readable Python source for that application is in this repository, including its web UI, proxy code, reference shape assets, build script, and PyInstaller specification.
 
 ## What you need
 
-- A Windows PC
-- A PS5 on the same network as the PC
-- `BO2EmblemToolkit.exe`
-- A home network or Windows hotspot that both the PC and PS5 can use
+- A Windows PC and a PS5 on the same local network
+- The release `BO2EmblemToolkit.exe`, or Python 3.9+ if running from source
+- Permission to set a proxy server in the PS5 network settings
 
-## Files in this folder
+## Quick start (precompiled app)
 
-- `BO2EmblemToolkit.exe`: the app
-- `saved/`: your captured emblems created while using the app
-- `state.txt`: the current mode used by the app
+1. Download and run `BO2EmblemToolkit.exe` from Releases.
+2. Keep its terminal window open. The control panel should open in your browser. If it does not, visit `http://localhost:8090`.
+3. Note the LAN IP and port `8080` shown by the app.
+4. On PS5: `Settings -> Network -> Settings -> Set Up Internet Connection -> Advanced Settings`.
+5. Set `Proxy Server` to `Use`, then enter the app's IP address and port.
+6. In the control panel, select `Capture`, then visit a player's BO2 profile/channel on the PS5.
+7. Select a captured emblem, switch to `Show`, and open your own BO2 emblem editor to load it.
 
-## First-time setup
+Switch the PS5 proxy back to `Do Not Use` when you are finished.
 
-1. Put `BO2EmblemToolkit.exe` in its own folder.
-2. Double-click `BO2EmblemToolkit.exe`.
-3. Leave the terminal window open.
-4. Let the app open the control panel in your browser. If it does not open automatically, go to `http://localhost:8090`.
-5. In the terminal window, look for the line that shows your proxy address, for example `192.168.1.42 : 8080`.
-6. On your PS5, go to `Settings -> Network -> Settings -> Set Up Internet Connection`.
-7. Pick your current connection, open `Advanced Settings`, and set `Proxy Server` to `Use`.
-8. Enter the IP address and port shown by the app.
-9. Save the settings and test the connection on the PS5.
+## Run from source
 
-## How to use it
+```powershell
+python -m pip install -r requirements.txt
+python run.py
+```
 
-### Capture an emblem
+On Windows, `start.bat` runs the same command. The source runtime depends only on Pillow.
 
-1. In the control panel, switch to `Capture`.
-2. On the PS5, open the profile or channel of the player whose emblem you want.
-3. Wait a few seconds for the emblem to appear in the captured list.
-4. Optionally rename the captured emblem in the control panel so it is easier to recognize later.
+## Build the Windows executable
 
-### Load the captured emblem into your own editor
+Install Python 3.9+ and run:
 
-1. Click the captured emblem you want to use.
-2. Switch the tool to `Show`.
-3. On the PS5, open your own BO2 emblem editor.
-4. The selected emblem should load in place of the emblem the game would normally fetch.
-5. Save it in-game.
+```powershell
+python -m pip install -r requirements.txt pyinstaller
+pyinstaller --noconfirm --clean BO2EmblemToolkit.spec
+```
 
-## Important behavior to know
+The resulting file is `dist\BO2EmblemToolkit.exe`. Alternatively, run `build_exe.bat`; it installs the build dependency and creates the same output. The app icon, reference shapes, web UI, and license are bundled by the build configuration.
 
-- The BO2 emblem editor usually only fetches the emblem data once per game session. If you want to load a different captured emblem later, restart BO2 or switch to Zombies and back to Multiplayer before reopening the editor.
-- If the emblem uses shapes or icons your account has not unlocked, the game may fail to display it correctly or refuse to save it. That is enforced by the game itself, not by this tool.
-- The terminal window must stay open while you use the app. Closing it stops the proxy and the control panel.
+## Notes and troubleshooting
 
-## Common warnings, errors, and fixes
+### `HTTPS traffic to auth3.prod.demonware.net`
 
-### The warning about `HTTPS traffic to auth3.prod.demonware.net`
+Expected. This says the tool saw unrelated encrypted PlayStation/Demonware traffic and passed it through untouched. The proxy only changes the BO2 emblem endpoints it is designed to handle; it does not decrypt normal PSN traffic.
 
-This is expected and not a problem.
+### `PIL.Image...DecompressionBombWarning`
 
-That line means the tool saw normal encrypted PlayStation or Demonware traffic that was not the BO2 emblem endpoint it actually modifies, so it tunneled that traffic through untouched. In plain English: the app noticed unrelated HTTPS traffic and deliberately left it alone.
+This preview-library warning can appear when Pillow sees a very large local reference image. It is not evidence of malware, a virus, or an attack. Current source suppresses the warning for the trusted local shape assets used by this tool.
 
-### `PIL.Image.py:3578: DecompressionBombWarning`
+### `ConnectionAbortedError: [WinError 10053]`
 
-This warning looks scary, but in this app it is not evidence of malware, a virus, or somebody attacking your PC.
+This usually happens when the browser closes or refreshes while the local control panel is writing a response. It is a harmless local client disconnect, not proof that antivirus or another program is blocking the ripper. Current source handles these disconnects quietly.
 
-It comes from Pillow, the image library used to render emblem previews. Pillow warns when an image has a very large pixel count. In this tool's case, that warning is tied to local trusted image assets used for rendering previews, not to remote code execution or a security breach.
+### PS5 cannot connect after enabling the proxy
 
-If you see this warning by itself and the tool keeps working, it is generally safe to ignore.
+- Confirm the PC and PS5 are on the same network.
+- Use the exact IP shown by the app, especially if using a Windows hotspot.
+- Allow inbound TCP port `8080` in Windows Firewall for private networks.
+- Keep the app open and re-test the connection after saving the proxy settings.
 
-### `ConnectionAbortedError: [WinError 10053] An established connection was aborted by the software in your host machine`
+### Capture list is empty or a selected emblem does not load
 
-This message does not usually mean antivirus or some unknown program is attacking the app.
+- Verify the mode is `Capture` when opening another player's profile/channel.
+- Verify the mode is `Show` and an emblem is selected before opening your editor.
+- Restart BO2 or switch game modes before reopening the editor, since it commonly fetches emblem data only once per session.
+- Emblems using shapes your account has not unlocked can be rejected by the game.
 
-In this project, it most commonly happens when the local browser disconnects from the built-in control panel while the app is still sending a response. That is noisy, but it is not proof that the tool is unsafe or that some outside software is blocking the emblem ripper.
+## Safety
 
-### The PS5 says there is no internet connection after I enable the proxy
+This project is open source so you can inspect exactly what it does and build the executable yourself. It runs a local proxy for the narrow purpose of handling BO2 emblem requests and passes unrelated HTTPS traffic through. Windows SmartScreen may identify the release build as an unrecognized publisher because it is not code-signed; that is a publisher-reputation warning, not proof of malware.
 
-Try these fixes:
+## Local data
 
-1. Make sure the PS5 and the PC are on the same network.
-2. If you are using a Windows hotspot, use the hotspot IP shown by the app, not your normal router IP.
-3. Allow port `8080` through Windows Firewall for private networks.
-4. Retest the connection on the PS5 after saving the proxy settings again.
-
-### The control panel does not open
-
-- Open `http://localhost:8090` manually in your browser.
-- Make sure the app is still running.
-- If another app is already using port `8090`, close that app and restart `BO2EmblemToolkit.exe`.
-
-### The capture list stays empty
-
-- Confirm the tool is in `Capture` mode.
-- Make sure you opened another player's BO2 profile or channel on the console.
-- Double-check that the PS5 proxy settings still point to this PC.
-
-### The selected emblem does not appear in your editor
-
-- Confirm the tool is in `Show` mode.
-- Make sure you selected an emblem first.
-- Restart the BO2 session or switch modes in-game to force the editor to fetch again.
-- If the emblem uses locked shapes on your account, the game may reject it.
-
-## Safety note
-
-Based on the way this tool is designed, it is focused on a narrow job: intercepting BO2 emblem-storage traffic and letting all unrelated HTTPS traffic pass through untouched. The warning shown in your screenshot is not a sign of malware or spyware, and the app is not trying to decrypt PSN traffic.
-
-As with any unsigned Windows utility, SmartScreen may warn that the publisher is unrecognized. That warning is about code signing reputation, not proof that the app is malicious.
-
-## Tips
-
-- Keep the app folder somewhere easy to find.
-- Back up the `saved/` folder if you want to keep your captured emblems.
-- Switch the PS5 proxy setting back to `Do Not Use` or close the app when you are done.
+Captured emblems are stored in `saved/` beside the executable or source checkout. Local `saved/` content and `state.txt` are ignored by Git and are never included in releases.

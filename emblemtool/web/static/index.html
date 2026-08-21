@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BO2 Emblem Tool Ripper</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<div class="page-shell">
+  <header class="hero">
+    <div class="hero-brand">
+      <div class="logo-frame" aria-hidden="true">
+        <div class="logo-mark">R</div>
+      </div>
+      <div class="hero-title-group">
+        <h1>BO2 Emblem Tool<br>Ripper</h1>
+      </div>
+    </div>
+    <p class="hero-tagline">EXTRACT &amp; COPY ANOTHER PLAYER'S BLACK OPS II EMBLEM ONTO YOUR OWN ACCOUNT</p>
+    <div class="setup-panel" id="setupBox">
+      <div class="setup-label-row">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span class="setup-label">PLAYSTATION PROXY SETTING</span>
+      </div>
+      <div class="setup-value" id="setupValue">detecting...</div>
+    </div>
+  </header>
+
+  <main class="content">
+    <section class="hud-card mode-card">
+      <h2>OPERATION MODE</h2>
+      <div class="mode-grid">
+        <button class="mode-btn" data-mode="off" type="button">
+          <span class="mode-emblem mode-emblem-off" aria-hidden="true"></span>
+          <span class="mode-name">OFF</span>
+          <span class="mode-desc">Normal internet, nothing is touched</span>
+        </button>
+        <button class="mode-btn" data-mode="capture" type="button">
+          <span class="mode-emblem mode-emblem-capture" aria-hidden="true"></span>
+          <span class="mode-name">CAPTURE</span>
+          <span class="mode-desc">Save the emblem of the player whose profile you open</span>
+        </button>
+        <button class="mode-btn" data-mode="inject" type="button">
+          <span class="mode-emblem mode-emblem-inject" aria-hidden="true"></span>
+          <span class="mode-name">INJECT</span>
+          <span class="mode-desc">Load your selected emblem into your own emblem editor</span>
+        </button>
+      </div>
+
+      <div class="mode-status-row">
+        <span class="mode-status-bar" aria-hidden="true"></span>
+        <p class="mode-hint" id="modeHint"></p>
+      </div>
+
+      <div class="warning-box">
+        <p><strong>The editor only checks once per session.</strong> After you open your emblem editor the first time, the game caches what it loaded and won't check again, even if you select a different emblem here. To load a different one, restart the game, or switch to Zombies and back to Multiplayer, before opening the editor again.</p>
+        <p><strong>Locked shapes won't work.</strong> If a captured emblem uses a shape, rank, or weapon icon your own account hasn't unlocked, the game may fail to load or save it. That's Black Ops II enforcing it, not something this tool can get around.</p>
+        <p><strong>Target slot.</strong> If you leave "Target slot" blank, INJECT mode will replace <em>all</em> the emblems you currently own with the selected emblem. Specify a target slot to limit the replacement to just that slot. To find your own slot numbers, select "INJECT" mode and go directly to your own editor <strong>BEFORE</strong> performing any copying. Log out and back in afterward.</p>
+      </div>
+    </section>
+
+    <section class="hud-card">
+      <div class="section-head">
+        <h2>CAPTURED EMBLEMS</h2>
+        <button class="btn btn-ghost btn-small" id="refreshBtn" type="button">REFRESH</button>
+      </div>
+      <p class="muted">Click one to select it. Once you switch to <strong>INJECT</strong> and open your own emblem editor, this is the emblem that loads there, ready to save as your own.</p>
+      <div class="captured-toolbar">
+        <label class="target-slot-inline" for="targetSlotInput">
+          <span class="target-slot-inline-label">Target slot (optional)</span>
+          <input id="targetSlotInput" class="target-slot-input" type="number" min="0" step="1" placeholder="e.g. 504 - leave blank to overwrite every slot">
+        </label>
+      </div>
+      <label class="profile-filter">
+        <input id="profileOnlyToggle" type="checkbox">
+        <span>Show only my profile's emblems</span>
+        <small>Emblems from your own profile are detected automatically.</small>
+      </label>
+      <p class="muted" id="emblemsEmpty">No emblems captured yet. Switch to CAPTURE mode, then open a player's profile or channel on your PS5.</p>
+      <div class="emblem-list" id="emblemList"></div>
+    </section>
+  </main>
+</div>
+
+<template id="emblemCardTpl">
+  <div class="emblem-card">
+    <div class="emblem-profile-badge">YOUR PROFILE</div>
+    <div class="emblem-select-indicator">ARMED</div>
+    <div class="thumb-frame"><img class="emblem-thumb" alt="emblem preview"></div>
+    <input class="emblem-label-input" placeholder="Unnamed emblem">
+    <span class="emblem-slot"></span>
+    <span class="emblem-date"></span>
+  </div>
+</template>
+
+<script src="/app.js"></script>
+</body>
+</html>
