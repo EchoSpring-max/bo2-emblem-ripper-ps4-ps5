@@ -7,6 +7,7 @@ A Windows proxy tool for capturing Black Ops II emblems visible on PS5 and loadi
 For normal use, download `BO2EmblemToolkit.exe` from this repository's **Releases** page. It is a precompiled Windows build; Python is not required.
 
 The full readable Python source for that application is in this repository, including its web UI, proxy code, reference shape assets, build script, and PyInstaller specification.
+See [BINARY_AUDIT.md](BINARY_AUDIT.md) for a repeatable verification against the shipped executable.
 
 ## What you need
 
